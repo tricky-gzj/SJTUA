@@ -4,7 +4,7 @@
 import sys
 from PySide import QtCore, QtGui
 from quitdialog import *
-from magic import *
+from member import *
 
 DYNAMIC, SCHEDULE, MESSAGE, MEMBER = range(4)
 winState = DYNAMIC

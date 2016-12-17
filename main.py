@@ -1,10 +1,13 @@
-#!/usr/bin/env python
+#! python2
 #-*- coding:utf-8 -*-
 
 import sys
 from PySide import QtCore, QtGui
 from quitdialog import *
 from member import *
+from dynamic import *
+from message import *
+from schedule import *
 
 DYNAMIC, SCHEDULE, MESSAGE, MEMBER = range(4)
 winState = DYNAMIC
@@ -33,13 +36,16 @@ class mainWindow(QtGui.QMainWindow):
         self.sys_tray_icon.messageClicked.connect(self.on_sys_tray_icon_msg_clicked)
         self.sys_tray_icon.show()
 
-        TitleRect=0,0,self.w,50
-        self.TitleBoard = TitleBoard(self,TitleRect,assName,winState)
+        self.boards = []
+
+        self.TitleBoard = TitleBoard(self,assName,winState)
         self.statusbar = self.statusBar()
         self.connect(self.TitleBoard, QtCore.SIGNAL("messageToStatusbar(QString)"),
                      self.statusbar, QtCore.SLOT("showMessage(QString)"))
 
-        self.demo = MemberLocate(self)
+        self.MemberLocate = MemberLocate(self)
+        self.boards.append(self.MemberLocate)
+
 
 
     def center(self):
@@ -100,24 +106,22 @@ class mainWindow(QtGui.QMainWindow):
 
 
 class TitleBoard(QtGui.QFrame):
-    def __init__(self, parent, rect, assName, state):
+    def __init__(self, parent, assName, state):
         QtGui.QFrame.__init__(self, parent)
+        self.parent = parent
         self.assName = assName
-        self.state= state
-        self.x,self.y,self.w,self.h = rect
-        self.resize(self.w,self.h)
-        self.rect = QtCore.QRect(self.x,self.y,self.w,self.h)
+        self.state = state
+        self.x, self.y, self.w, self.h = 0, 0, 1000, 50
+        self.resize(self.w, self.h)
+        self.rect = QtCore.QRect(self.x, self.y, self.w, self.h)
         self.setFrameRect(self.rect)
         self.setWidgt()
-
         self.setFocusPolicy(QtCore.Qt.StrongFocus)
-
+        self.convertState(self.state)
         self.update()
 
-    def setWidgt(self):
-        w=self.w
-        h=self.h
 
+    def setWidgt(self):
         font = QtGui.QFont()
         font.setFamily("Calibri")
         font.setPointSize(20)
@@ -162,26 +166,50 @@ class TitleBoard(QtGui.QFrame):
     def emitStatus(self,text):
         self.emit(QtCore.SIGNAL("messageToStatusbar(QString)"),text)
 
+    def convertState(self,state):
+        main = self.parent  # or some bug here
+        main.state = self.state
+        for board in main.boards:
+            board.hide()
+        main.boards = []
+        if state == DYNAMIC:
+            pass
+        elif state == SCHEDULE:
+            pass
+        elif state == MESSAGE:
+            pass
+        elif state == MEMBER:
+            main.boards.append(main.MemberLocate)
+        for board in main.boards:
+            board.show()
+        self.update()
+
+
     def _cbx_currentIndexChanged(self):
         #sys.exit(app.exec_())
         pass
 
+    # DYNAMIC
     def _btn1_cb(self):
-        self.emitStatus("clicked1")
-        self.update()
+        self.state = DYNAMIC
+        self.convertState(self.state)
 
+    # SCHEDULE
     def _btn2_cb(self):
-        self.emitStatus("clicked2")
-        self.update()
+        self.state = SCHEDULE
+        self.convertState(self.state)
 
+    # MESSAGE
     def _btn3_cb(self):
-        self.emitStatus("clicked3")
-        self.update()
+        self.state = MESSAGE
+        self.convertState(self.state)
 
+    # MEMBER
     def _btn4_cb(self):
-        self.emitStatus("clicked4")
-        self.update()
+        self.state = MEMBER
+        self.convertState(self.state)
 
+    # PLUS
     def _tbtn_cb(self):
         self.emitStatus("clicked +")
         self.update()
@@ -239,36 +267,7 @@ class TitleBoard(QtGui.QFrame):
                          y + self.squareHeight() - 1, x + self.squareWidth() - 1, y + 1)
 
 
-class MemberLocate(QtGui.QFrame):
-    def __init__(self, parent):
-        QtGui.QFrame.__init__(self, parent)
-        self.setGeometry(0, 60, 700, 540)
 
-        self.lineedit = QtGui.QLineEdit(self)
-        self.lineedit.setGeometry(10, 5, 450, 30)
-
-        self.lineedit.returnPressed.connect(self._lineedit_returnPressed)
-        self.lineedit.textChanged.connect(self._lineedit_textChanged)
-
-        self.magic_box = MagicBox()
-        self.list_view = QtGui.QListView(self)
-        self.list_view.setGeometry(10, 75, 680, 460)
-
-        self.list_model = ListModel(self.magic_box)
-        self.list_view.setModel(self.list_model)
-        self.list_view.setIconSize(QtCore.QSize(50, 50))
-
-    def _lineedit_textChanged(self, text):
-        print "text changed:", text
-
-        self.magic_box.filter_list_by_keyword(text)
-        self.list_view.update()
-
-    def _lineedit_returnPressed(self):
-        text = self.lineedit.text()
-
-        print "return press:", text
-        print "magics:", self.magic_box.magics
 
 
 if __name__ == "__main__":

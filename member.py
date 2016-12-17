@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 # -*- coding:utf-8 -*-
 
 import re
@@ -6,18 +5,6 @@ import sys
 import glob
 import os
 from PySide import QtCore, QtGui
-
-
-
-datas_ = (
-    (u'张三', '10001'),
-    ('C#\n----\n456', '10002'),
-    ('Lisp\n123', '10003'),
-    ('Objective-C', '10004'),
-    ('Perl', '10005'),
-    ('Ruby', '10006'),
-)
-
 
 MemberList=[]
 
@@ -29,6 +16,33 @@ class Member:
     def getIcon(self):
         iconid = int(self.pid) % 4
         return './head/' + str(iconid) + '.png'
+
+
+class MemberDB:
+    def __init__(self):
+        self.db = "members.db"
+        self.memberList = []
+        self.readMember()
+
+    def readMember(self):
+        self.memberList = []
+        datas_ = (
+            (u'张三', '10001'),
+            ('C#\n----\n456', '10002'),
+            ('Lisp\n123', '10003'),
+            ('Objective-C', '10004'),
+            ('Perl', '10005'),
+            ('Ruby', '10006'),
+        )
+
+        for i in datas_:
+            name, pid = i[0], i[1]
+            member = Member(pid, name)
+            MemberList.append(member)
+
+    def searchMember(self,tags):
+        self.memberList = []
+
 
 
 class Magic:
@@ -91,24 +105,64 @@ class ListModel(QtCore.QAbstractListModel):
 
         elif role == QtCore.Qt.DecorationRole:
             icon = QtGui.QIcon(icon_path)
-            #icon.(QtCore.QSize(32, 32))
             return icon
 
         elif role == QtCore.Qt.BackgroundColorRole:
-            colorTable = [0x000000, 0xCC6666, 0x66CC66, 0x6666CC,
-                          0xCCCC66, 0xCC66CC, 0x66CCCC, 0xDAAA00]
+            colorTable = [0x000000, 0xFFFFE0, 0xDCDCDC, 0xF0FFFF,
+                          0xD1EEEE, 0xCDCDC1, 0x00FFFF, 0x00FF7F]
             cc = eval(magic.pid) % 8
-
             color = QtGui.QColor(colorTable[cc])
             return QtGui.QBrush(color)
 
         return None
 
+class MemberLocate(QtGui.QFrame):
+    def __init__(self, parent):
+        QtGui.QFrame.__init__(self, parent)
+        self.setGeometry(0, 60, 700, 540)
+
+        self.lineedit = QtGui.QLineEdit(self)
+        self.lineedit.setGeometry(10, 5, 450, 30)
+
+        self.lineedit.returnPressed.connect(self._lineedit_returnPressed)
+        self.lineedit.textChanged.connect(self._lineedit_textChanged)
+
+        self.magic_box = MagicBox()
+        self.list_view = QtGui.QListView(self)
+        self.list_view.setGeometry(10, 75, 680, 460)
+
+        self.list_model = ListModel(self.magic_box)
+        self.list_view.setModel(self.list_model)
+        self.list_view.setIconSize(QtCore.QSize(50, 50))
+
+        self.db = MemberDB()
+
+    def _lineedit_textChanged(self, text):
+        print "text changed:", text
+
+        self.magic_box.filter_list_by_keyword(text)
+        self.list_view.update()
+
+    def _lineedit_returnPressed(self):
+        text = self.lineedit.text()
+
+        print "return press:", text
+        print "magics:", self.magic_box.magics
+
+datas_ = (
+            (u'张三', '10001'),
+            ('C#\n----\n456', '10002'),
+            ('Lisp\n123', '10003'),
+            ('Objective-C', '10004'),
+            ('Perl', '10005'),
+            ('Ruby', '10006'),
+        )
 
 for i in datas_:
     name, pid = i[0], i[1]
     member = Member(pid, name)
     MemberList.append(member)
+
 
 
 if __name__ == "__main__":

@@ -9,8 +9,9 @@ from dynamic import *
 from message import *
 from schedule import *
 
-DYNAMIC, SCHEDULE, MESSAGE, MEMBER = range(4)
-winState = DYNAMIC
+# some bug here convert state
+INITBUG, DYNAMIC, SCHEDULE, MESSAGE, MEMBER = range(5)
+winState = INITBUG
 assName = "SJTU_CC"
 
 
@@ -38,14 +39,12 @@ class mainWindow(QtGui.QMainWindow):
 
         self.boards = []
 
-        self.TitleBoard = TitleBoard(self,assName,winState)
-        self.statusbar = self.statusBar()
-        self.connect(self.TitleBoard, QtCore.SIGNAL("messageToStatusbar(QString)"),
-                     self.statusbar, QtCore.SLOT("showMessage(QString)"))
-
+        self.TitleBoard = TitleBoard(self, assName, winState)
+        self.DynamicList = DynamicList(self)
         self.MemberLocate = MemberLocate(self)
-        self.boards.append(self.MemberLocate)
-
+        self.Calendar = Calendar(self)
+        self.boards.extend([self.MemberLocate,self.DynamicList,self.Calendar])
+        self.convertState(state)  # bug if self.state
 
 
     def center(self):
@@ -57,6 +56,32 @@ class mainWindow(QtGui.QMainWindow):
     def show_and_raise(self):
         self.show()
         self.raise_()
+
+    def convertState(self, state):
+        # or some bug here
+        self.state = state
+        for board in self.boards:
+            board.hide()
+        self.boards = []
+        if state == DYNAMIC:
+            self.boards.append(self.DynamicList)
+            pass
+        elif state == SCHEDULE:
+            self.boards.append(self.Calendar)
+            #self.boards.append(self.Affair)
+            pass
+        elif state == MESSAGE:
+            #self.boards.append(self.DialogList)
+            #self.boards.append(self.MessageRecord)
+            #self.boards.append(self.EmailEditor)
+            pass
+        elif state == MEMBER:
+            self.boards.append(self.MemberLocate)
+            #self.boards.append(self.MemberInfo)
+            pass
+        for board in self.boards:
+            board.show()
+        self.update()
 
     @staticmethod
     def confirm_quit(main_win, close_evt=None):
@@ -115,13 +140,12 @@ class TitleBoard(QtGui.QFrame):
         self.resize(self.w, self.h)
         self.rect = QtCore.QRect(self.x, self.y, self.w, self.h)
         self.setFrameRect(self.rect)
-        self.setWidgt()
+        self.initUI()
         self.setFocusPolicy(QtCore.Qt.StrongFocus)
-        self.convertState(self.state)
+        parent.convertState(self.state)
         self.update()
 
-
-    def setWidgt(self):
+    def initUI(self):
         font = QtGui.QFont()
         font.setFamily("Calibri")
         font.setPointSize(20)
@@ -162,91 +186,43 @@ class TitleBoard(QtGui.QFrame):
         self.tbtn.clicked.connect(self._tbtn_cb)
         self.tbtn.move(950, 15)
 
-
-    def emitStatus(self,text):
-        self.emit(QtCore.SIGNAL("messageToStatusbar(QString)"),text)
-
-    def convertState(self,state):
-        main = self.parent  # or some bug here
-        main.state = self.state
-        for board in main.boards:
-            board.hide()
-        main.boards = []
-        if state == DYNAMIC:
-            pass
-        elif state == SCHEDULE:
-            pass
-        elif state == MESSAGE:
-            pass
-        elif state == MEMBER:
-            main.boards.append(main.MemberLocate)
-        for board in main.boards:
-            board.show()
-        self.update()
-
-
     def _cbx_currentIndexChanged(self):
         #sys.exit(app.exec_())
         pass
 
+    #INITBUG
+    def _btn0_cb(self):
+        self.state = INITBUG
+        self.parent.convertState(self.state)
+
     # DYNAMIC
     def _btn1_cb(self):
         self.state = DYNAMIC
-        self.convertState(self.state)
+        self.parent.convertState(self.state)
 
     # SCHEDULE
     def _btn2_cb(self):
         self.state = SCHEDULE
-        self.convertState(self.state)
+        self.parent.convertState(self.state)
 
     # MESSAGE
     def _btn3_cb(self):
         self.state = MESSAGE
-        self.convertState(self.state)
+        self.parent.convertState(self.state)
 
     # MEMBER
     def _btn4_cb(self):
         self.state = MEMBER
-        self.convertState(self.state)
+        self.parent.convertState(self.state)
 
     # PLUS
     def _tbtn_cb(self):
-        self.emitStatus("clicked +")
         self.update()
 
     def paintEvent(self, event):
         painter = QtGui.QPainter(self)
         rect = self.contentsRect()
         painter.fillRect(rect, 'white')
-
-
-    def keyPressEvent(self, event):
-        if not self.isStarted or self.curPiece.shape() == Tetrominoes.NoShape:
-            QtGui.QWidget.keyPressEvent(self, event)
-            return
-
-        key = event.key()
-        if key == QtCore.Qt.Key_P:
-            self.pause()
-            return
-
-        if self.isPaused:
-            return
-        elif key == QtCore.Qt.Key_Left:
-            self.tryMove(self.curPiece, self.curX - 1, self.curY)
-        elif key == QtCore.Qt.Key_Right:
-            self.tryMove(self.curPiece, self.curX + 1, self.curY)
-        elif key == QtCore.Qt.Key_Down:
-            self.tryMove(self.curPiece.rotatedRight(), self.curX, self.curY)
-        elif key == QtCore.Qt.Key_Up:
-            self.tryMove(self.curPiece.rotatedLeft(), self.curX, self.curY)
-        elif key == QtCore.Qt.Key_Space:
-            self.dropDown()
-        elif key == QtCore.Qt.Key_D:
-            self.oneLineDown()
-        else:
-            QtGui.QWidget.keyPressEvent(self, event)
-
 
     def drawSquare(self, painter, x, y, shape):
         colorTable = [0x000000, 0xCC6666, 0x66CC66, 0x6666CC,
@@ -267,13 +243,12 @@ class TitleBoard(QtGui.QFrame):
                          y + self.squareHeight() - 1, x + self.squareWidth() - 1, y + 1)
 
 
-
-
-
 if __name__ == "__main__":
+    memberdata()
+    dynamicdata()
     app = QtGui.QApplication(sys.argv)
 
-    main = mainWindow(state="Member")
+    main = mainWindow(MEMBER)
 
     main.show_and_raise()
     sys.exit(app.exec_())

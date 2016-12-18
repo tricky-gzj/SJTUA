@@ -6,7 +6,7 @@ import glob
 import os
 from PySide import QtCore, QtGui
 
-MemberList=[]
+memberList=[]
 
 class Member:
     def __init__(self, pid = 0, name = "lazy"):
@@ -38,14 +38,14 @@ class MemberDB:
         for i in datas_:
             name, pid = i[0], i[1]
             member = Member(pid, name)
-            MemberList.append(member)
+            memberList.append(member)
 
     def searchMember(self,tags):
         self.memberList = []
 
 
 
-class Magic:
+class Item:
     def __init__(self, member):
         self.pid = member.pid
         self.fullname = member.name
@@ -53,52 +53,52 @@ class Magic:
         self.pid = member.pid
 
     def __repr__(self):
-        return "<Magic %s>" % self.fullname
+        return "<Item %s>" % self.fullname
 
 
-class MagicBox(object):
+class ItemBox(object):
     def __init__(self):
-        self._magics = set()
+        self._items = set()
 
-        for i in MemberList:
-            magic = Magic(i)
-            self._magics.add(magic)
+        for i in memberList:
+            item = Item(i)
+            self._items.add(item)
 
-        self._cache = list(self._magics)
-
-    @property
-    def magics_count(self):
-        return len(self._magics)
+        self._cache = list(self._items)
 
     @property
-    def all_magics(self):
-        return self._magics
+    def items_count(self):
+        return len(self._items)
 
     @property
-    def magics(self):
+    def all_items(self):
+        return self._items
+
+    @property
+    def items(self):
         return self._cache
 
     def filter_list_by_keyword(self, keyword):
         self._cache = [i
-                       for i in self._magics
+                       for i in self._items
                        if i.fullname.find(keyword) != -1 or \
                        re.match(keyword, i.fullname, re.I)]
 
 
 class ListModel(QtCore.QAbstractListModel):
-    def __init__(self, magic_box):
+    def __init__(self, item_box):
         super(ListModel, self).__init__()
-        self.magic_box = magic_box
+        self.item_box = item_box
 
     def rowCount(self, parent):
-        return len(self.magic_box.magics)
+        return len(self.item_box.items)
 
     def data(self, index, role=QtCore.Qt.DisplayRole):
         if not index.isValid():
             return None
 
-        magic = self.magic_box.magics[index.row()]
-        fullname, icon_path, user_data = magic.fullname, magic.icon_path, magic.pid
+        item = self.item_box.items[index.row()]
+        fullname, icon_path, user_data = item.fullname, item.icon_path, item.pid
 
         if role == QtCore.Qt.DisplayRole:
             return fullname
@@ -110,7 +110,7 @@ class ListModel(QtCore.QAbstractListModel):
         elif role == QtCore.Qt.BackgroundColorRole:
             colorTable = [0x000000, 0xFFFFE0, 0xDCDCDC, 0xF0FFFF,
                           0xD1EEEE, 0xCDCDC1, 0x00FFFF, 0x00FF7F]
-            cc = eval(magic.pid) % 8
+            cc = eval(item.pid) % 8
             color = QtGui.QColor(colorTable[cc])
             return QtGui.QBrush(color)
 
@@ -127,11 +127,12 @@ class MemberLocate(QtGui.QFrame):
         self.lineedit.returnPressed.connect(self._lineedit_returnPressed)
         self.lineedit.textChanged.connect(self._lineedit_textChanged)
 
-        self.magic_box = MagicBox()
+        self.item_box = ItemBox()
         self.list_view = QtGui.QListView(self)
         self.list_view.setGeometry(10, 75, 680, 460)
+        self.list_view.setSpacing(3)
 
-        self.list_model = ListModel(self.magic_box)
+        self.list_model = ListModel(self.item_box)
         self.list_view.setModel(self.list_model)
         self.list_view.setIconSize(QtCore.QSize(50, 50))
 
@@ -140,28 +141,31 @@ class MemberLocate(QtGui.QFrame):
     def _lineedit_textChanged(self, text):
         print "text changed:", text
 
-        self.magic_box.filter_list_by_keyword(text)
+        self.item_box.filter_list_by_keyword(text)
         self.list_view.update()
 
     def _lineedit_returnPressed(self):
         text = self.lineedit.text()
 
         print "return press:", text
-        print "magics:", self.magic_box.magics
+        print "items:", self.item_box.items
 
-datas_ = (
-            (u'张三', '10001'),
-            ('C#\n----\n456', '10002'),
-            ('Lisp\n123', '10003'),
-            ('Objective-C', '10004'),
-            ('Perl', '10005'),
-            ('Ruby', '10006'),
-        )
 
-for i in datas_:
-    name, pid = i[0], i[1]
-    member = Member(pid, name)
-    MemberList.append(member)
+
+def memberdata():
+    datas_ = (
+        (u'张三', '10001'),
+        ('C#\n----\n456', '10002'),
+        ('Lisp\n123', '10003'),
+        ('Objective-C', '10004'),
+        ('Perl', '10005'),
+        ('Ruby', '10006'),
+    )
+    for i in datas_:
+        name, pid = i[0], i[1]
+        member = Member(pid, name)
+        memberList.append(member)
+
 
 
 

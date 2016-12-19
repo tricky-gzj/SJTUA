@@ -43,7 +43,8 @@ class mainWindow(QtGui.QMainWindow):
         self.DynamicList = DynamicList(self)
         self.MemberLocate = MemberLocate(self)
         self.Calendar = Calendar(self)
-        self.boards.extend([self.MemberLocate,self.DynamicList,self.Calendar])
+        self.AffairList = AffairList(self)
+        self.boards.extend([self.MemberLocate,self.DynamicList,self.Calendar,self.AffairList])
         self.convertState(state)  # bug if self.state
 
 
@@ -68,7 +69,7 @@ class mainWindow(QtGui.QMainWindow):
             pass
         elif state == SCHEDULE:
             self.boards.append(self.Calendar)
-            #self.boards.append(self.Affair)
+            self.boards.append(self.AffairList)
             pass
         elif state == MESSAGE:
             #self.boards.append(self.DialogList)
@@ -246,6 +247,7 @@ class TitleBoard(QtGui.QFrame):
 if __name__ == "__main__":
     memberdata()
     dynamicdata()
+    affairdata()
     app = QtGui.QApplication(sys.argv)
 
     main = mainWindow(MEMBER)

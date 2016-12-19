@@ -19,12 +19,12 @@ class Dynamic:
 
 class DynamicDB:
     def __init__(self):
-        self.db = "members.db"
-        self.memberList = []
+        self.db = "dynamics.db"
+        self.dynamicList = []
         self.readDynamic()
 
     def readDynamic(self):
-        self.memberList = []
+        self.dynamicList = []
         datas_ = (
             (u'张三', '10001'),
             ('C#\n----\n456', '10002'),
@@ -36,26 +36,20 @@ class DynamicDB:
 
         for i in datas_:
             name, pid = i[0], i[1]
-            member = Dynamic(pid, name)
-            memberList.append(member)
+            dynamic = Dynamic(pid, name)
+            dynamicList.append(dynamic)
 
     def searchDynamic(self,tags):
-        self.memberList = []
+        self.dynamicList = []
 
 class DynamicList(QtGui.QFrame):
     def __init__(self, parent):
         QtGui.QFrame.__init__(self, parent)
-        self.setGeometry(0, 60, 100, 540)
-
-        self.lineedit = QtGui.QLineEdit(self)
-        self.lineedit.setGeometry(10, 5, 450, 30)
-
-        self.lineedit.returnPressed.connect(self._lineedit_returnPressed)
-        self.lineedit.textChanged.connect(self._lineedit_textChanged)
+        self.setGeometry(0, 60, 1000, 540)
 
         self.item_box = ItemBox()
         self.list_view = QtGui.QListView(self)
-        self.list_view.setGeometry(10, 75, 680, 460)
+        self.list_view.setGeometry(0, 0, 1000, 540)
         self.list_view.setSpacing(3)
 
         self.list_model = ListModel(self.item_box)
@@ -64,20 +58,17 @@ class DynamicList(QtGui.QFrame):
 
         self.db = DynamicDB()
 
-    def _lineedit_textChanged(self, text):
-        print "text changed:", text
-
-        self.item_box.filter_list_by_keyword(text)
-        self.list_view.update()
-
-    def _lineedit_returnPressed(self):
-        text = self.lineedit.text()
-
-        print "return press:", text
-        print "items:", self.item_box.items
 
 def dynamicdata():
+    datas_ = (
+        (u'张三', '10001'),
+        ('C#\n----\n456', '10002'),
+        ('Lisp\n123', '10003'),
+        ('Objective-C', '10004'),
+        ('Perl', '10005'),
+        ('Ruby', '10006'),
+    )
     for i in datas_:
         name, pid = i[0], i[1]
-        member = Dynamic(pid, name)
-        memberList.append(member)
+        dynamic = Dynamic(pid, name)
+        dynamicList.append(dynamic)

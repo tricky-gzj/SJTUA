@@ -169,12 +169,3 @@ def memberdata():
 
 
 
-if __name__ == "__main__":
-    app = QtGui.QApplication(sys.argv)
-
-    demo = Demo()
-    demo.show_and_raise()
-
-    sys.exit(app.exec_())
-
-

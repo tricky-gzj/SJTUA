@@ -3,6 +3,7 @@
 
 import sys
 from PySide import QtCore, QtGui
+import sqlite3
 from quitdialog import *
 from member import *
 from dynamic import *
@@ -245,13 +246,15 @@ class TitleBoard(QtGui.QFrame):
 
 
 if __name__ == "__main__":
-    memberdata()
-    dynamicdata()
+
+    #dynamicdata()
     affairdata()
+    conn = sqlite3.connect('test.db')
     app = QtGui.QApplication(sys.argv)
 
     main = mainWindow(MEMBER)
 
     main.show_and_raise()
     sys.exit(app.exec_())
+    conn.close()
 

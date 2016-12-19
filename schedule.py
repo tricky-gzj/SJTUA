@@ -4,7 +4,7 @@
 
 import sys
 from PySide import QtGui, QtCore
-from clist import *
+
 affairList = []
 
 class Calendar(QtGui.QFrame):
@@ -69,17 +69,50 @@ class AffairList(QtGui.QFrame):
         QtGui.QFrame.__init__(self, parent)
         self.setGeometry(400, 60, 600, 540)
 
-        self.item_box = ItemBox()
         self.list_view = QtGui.QListView(self)
         self.list_view.setGeometry(0, 0, 600, 540)
         self.list_view.setSpacing(3)
 
-        self.list_model = ListModel(self.item_box)
+        self.list_model = AffairListModel(affairList)
         self.list_view.setModel(self.list_model)
         self.list_view.setIconSize(QtCore.QSize(50, 50))
 
         self.db = AffairDB()
 
+
+class AffairListModel(QtCore.QAbstractListModel):
+    def __init__(self, affairList):
+        super(AffairListModel, self).__init__()
+        self._items = set()
+        for item in affairList:
+            self._items.add(item)
+        self.items = list(self._items)
+
+    def rowCount(self, parent):
+        return len(self.items)
+
+    def data(self, index, role=QtCore.Qt.DisplayRole):
+        if not index.isValid():
+            return None
+
+        item = self.items[index.row()]
+        fullname, icon_path, user_data = item.name, item.getIcon(), item.pid
+
+        if role == QtCore.Qt.DisplayRole:
+            return fullname
+
+        elif role == QtCore.Qt.DecorationRole:
+            icon = QtGui.QIcon(icon_path)
+            return icon
+
+        elif role == QtCore.Qt.BackgroundColorRole:
+            colorTable = [0x000000, 0xFFFFE0, 0xDCDCDC, 0xF0FFFF,
+                          0xD1EEEE, 0xCDCDC1, 0x00FFFF, 0x00FF7F]
+            cc = eval(item.pid) % 8
+            color = QtGui.QColor(colorTable[cc])
+            return QtGui.QBrush(color)
+
+        return None
 
 def affairdata():
     datas_ = (

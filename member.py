@@ -48,13 +48,13 @@ class MemberLocate(QtGui.QFrame):
         self.db = MemberDB()
 
         self.lineedit = QtGui.QLineEdit(self)
-        self.lineedit.setGeometry(10, 5, 450, 30)
+        self.lineedit.setGeometry(10, 5, 450, 35)
 
         self.lineedit.returnPressed.connect(self._lineedit_returnPressed)
         self.lineedit.textChanged.connect(self._lineedit_textChanged)
 
         self.list_view = QtGui.QListView(self)
-        self.list_view.setGeometry(10, 75, 680, 460)
+        self.list_view.setGeometry(10, 75, 680, 465)
         self.list_view.setSpacing(3)
 
         self.list_model = MemberListModel(self.db.memberList)
@@ -109,6 +109,9 @@ class MemberListModel(QtCore.QAbstractListModel):
             return QtGui.QBrush(color)
 
         return None
+
+
+
 
 
 
